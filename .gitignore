@@ -20,3 +20,7 @@ htmlcov/
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# Local and external datasets
+data/*.csv
+!data/sample_data.csv

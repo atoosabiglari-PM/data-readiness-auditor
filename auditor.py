@@ -1,9 +1,27 @@
 import argparse
 from pathlib import Path
-
 import pandas as pd
+import re
 
+def has_id_token(column_name: str) -> bool:
+    separated_name = re.sub(
+        r"([A-Z]+)([A-Z][a-z])",
+        r"\1 \2",
+        column_name,
+    )
 
+    separated_name = re.sub(
+        r"([a-z0-9])([A-Z])",
+        r"\1 \2",
+        separated_name,
+    )
+
+    tokens = re.split(
+        r"[^A-Za-z0-9]+",
+        separated_name.lower(),
+    )
+
+    return "id" in tokens
 parser = argparse.ArgumentParser(
     description="Audit a CSV dataset for data-readiness issues."
 )
@@ -12,6 +30,14 @@ parser.add_argument(
     "csv_file",
     type=Path,
     help="Path to the CSV file to audit.",
+)
+
+parser.add_argument(
+    "--id-columns",
+    nargs="+",
+    default=[],
+    metavar="COLUMN",
+    help="One or more columns to treat as identifiers.",
 )
 
 args = parser.parse_args()
@@ -30,6 +56,28 @@ except UnicodeDecodeError:
     parser.error(f"CSV file encoding could not be read: {data_file}")
 except OSError as error:
     parser.error(f"CSV file could not be opened: {error}")
+
+column_name_lookup = {
+    column.casefold(): column
+    for column in dataset.columns
+}
+
+unknown_identifier_columns = [
+    requested_column
+    for requested_column in args.id_columns
+    if requested_column.casefold() not in column_name_lookup
+]
+
+if unknown_identifier_columns:
+    parser.error(
+        "Identifier column(s) not found: "
+        + ", ".join(unknown_identifier_columns)
+    )
+
+user_identifier_columns = [
+    column_name_lookup[requested_column.casefold()]
+    for requested_column in args.id_columns
+]
 
 print("\nDataset dimensions:")
 print(f"Rows: {dataset.shape[0]}")
@@ -98,12 +146,30 @@ high_cardinality_columns = [
 print("\nHigh-cardinality text columns:")
 print(high_cardinality_columns)
 
+
+
 identifier_columns = [
     column
     for column in dataset.columns
-    if column.lower() == "id"
-    or column.lower().endswith("_id")
+    if (
+        has_id_token(column)
+        or column in user_identifier_columns
+    )
 ]
+
+
+possible_identifier_columns = [
+    column
+    for column in dataset.columns
+    if (
+        column not in identifier_columns
+        and dataset[column].notna().all()
+        and dataset[column].nunique() == len(dataset)
+    )
+]
+print("\nPossible identifier columns requiring review:")
+print(possible_identifier_columns)
+
 
 numeric_columns = [
     column
