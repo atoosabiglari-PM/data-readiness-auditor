@@ -6,17 +6,67 @@ A Python application that evaluates the quality and readiness of tabular dataset
 
 Machine-learning results depend heavily on the quality of the underlying data. This project provides an automated first-pass audit of CSV datasets and highlights issues that should be addressed before modeling.
 
-## Planned Checks
+## Current Features
 
-- Dataset dimensions
-- Column names and data types
-- Missing values
-- Duplicate rows
-- Constant columns
-- High-cardinality columns
-- Numeric summary statistics
-- Potential outliers
-- Data-readiness recommendations
+- Accepts any CSV file through the command line
+- Displays dataset dimensions, preview, and column data types
+- Reports missing-value counts and percentages
+- Detects duplicate rows and constant columns
+- Calculates unique-value counts and percentages
+- Identifies high-cardinality text columns
+- Recognizes common identifier naming styles such as `customer_id`, `PassengerId`, and `TransactionID`
+- Reports fully unique columns as possible identifier candidates
+- Supports user-specified identifiers with `--id-columns`
+- Calculates numeric summary statistics while excluding identifiers
+- Detects potential numeric outliers using the IQR method
+- Generates actionable data-readiness recommendations
+- Handles missing, blank, malformed, header-only, and text-only CSV files
+
+## Usage
+
+### 1. Create and activate a virtual environment
+
+Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+### 2. Install dependencies
+
+```powershell
+pip install -r requirements.txt
+```
+
+### 3. Audit a CSV file
+
+```powershell
+python auditor.py data/sample_data.csv
+```
+
+### 4. Specify identifier columns manually
+
+```powershell
+python auditor.py path/to/dataset.csv --id-columns record_number account_code
+```
+
+Column matching for `--id-columns` is case-insensitive.
+
+### Command help
+
+```powershell
+python auditor.py --help
+```
+
+## Interpretation Notes
+
+- Potential outliers are values flagged for review, not automatically errors.
+- Fully unique columns are reported as possible identifier candidates but are not automatically removed.
+- Identifier columns are excluded only from numeric summary statistics and outlier analysis; they remain visible in the rest of the audit.
+- High-cardinality columns may still contain useful information and require human judgment before encoding or removal.
+- The auditor performs an initial readiness assessment and does not automatically clean or modify the source dataset.
+
 
 ## Technologies
 
