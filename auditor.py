@@ -57,6 +57,11 @@ except UnicodeDecodeError:
 except OSError as error:
     parser.error(f"CSV file could not be opened: {error}")
 
+if dataset.shape[0] == 0:
+    parser.error(
+        f"CSV file contains headers but no data rows: {data_file}"
+    )
+
 column_name_lookup = {
     column.casefold(): column
     for column in dataset.columns
@@ -180,11 +185,18 @@ numeric_columns = [
 ]
 
 print("\nNumeric summary statistics:")
-print(dataset[numeric_columns].describe())
+
+if numeric_columns:
+    print(dataset[numeric_columns].describe())
+else:
+    print("No numeric columns available for analysis.")
 
 outlier_columns = []
 
 print("\nPotential outliers by numeric column:")
+
+if not numeric_columns:
+    print("No numeric columns available for outlier analysis.")
 
 for column in numeric_columns:
     q1 = dataset[column].quantile(0.25)
