@@ -59,6 +59,22 @@ Column matching for `--id-columns` is case-insensitive.
 python auditor.py --help
 ```
 
+## Automated Testing
+
+Install the development and testing dependencies:
+
+```powershell
+python -m pip install -r requirements-dev.txt
+```
+
+Run the complete test suite:
+
+```powershell
+python -m pytest -v
+```
+
+The automated CLI tests verify successful CSV audits, missing and malformed files, blank and header-only datasets, text-only datasets, identifier validation, case-insensitive identifier matching, and exclusion of identifiers from numeric analysis.
+
 ## Interpretation Notes
 
 - Potential outliers are values flagged for review, not automatically errors.
