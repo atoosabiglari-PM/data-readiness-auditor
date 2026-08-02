@@ -1,0 +1,11 @@
+customer_id,name,age,city,income,country
+1001,Ana,29,San Jose,72000,USA
+1002,Ben,34,Oakland,68000,USA
+1003,Cara,,San Francisco,91000,USA
+1004,David,41,San Jose,,USA
+1005,Elena,27,Palo Alto,75000,USA
+1006,Farid,38,Oakland,999999,USA
+1007,Gina,31,,70000,USA
+1008,Hector,45,San Francisco,88000,USA
+1008,Hector,45,San Francisco,88000,USA
+1009,Iris,22,Palo Alto,64000,USA
