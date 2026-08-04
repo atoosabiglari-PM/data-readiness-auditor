@@ -61,6 +61,53 @@ Column matching for `--id-columns` is case-insensitive.
 python auditor.py --help
 ```
 
+## Example Audit Output
+
+Running:
+
+```powershell
+python auditor.py data/sample_data.csv
+```
+
+produces an audit similar to:
+
+```text
+Dataset dimensions:
+Rows: 10
+Columns: 6
+
+Missing-data summary:
+             missing_count  missing_percentage
+customer_id              0                 0.0
+name                     0                 0.0
+age                      1                10.0
+city                     1                10.0
+income                   1                10.0
+country                  0                 0.0
+
+Duplicate rows:
+1
+
+Constant columns:
+['country']
+
+High-cardinality text columns:
+['name']
+
+Potential outliers by numeric column:
+age: 0
+income: 1
+
+Data-readiness recommendations:
+- Review and handle missing values before modeling.
+- Review and remove or justify duplicate rows.
+- Consider removing constant columns: country.
+- Review high-cardinality text columns before encoding: name.
+- Review potential outliers in numeric columns: income.
+```
+
+This example demonstrates how the auditor converts raw CSV data into clear quality findings and recommended next actions.
+
 ## Automated Testing
 
 Install the development and testing dependencies:
