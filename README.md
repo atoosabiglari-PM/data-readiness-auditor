@@ -1,24 +1,26 @@
 # Data Readiness Auditor
 
-A Python application that evaluates the quality and readiness of tabular datasets before data analysis or machine-learning development.
+[![Run Tests](https://github.com/atoosabiglari-PM/data-readiness-auditor/actions/workflows/tests.yml/badge.svg)](https://github.com/atoosabiglari-PM/data-readiness-auditor/actions/workflows/tests.yml)
+
+A Python command-line application that evaluates the quality and readiness of tabular datasets before data analysis or machine-learning development.
 
 ## Purpose
 
-Machine-learning results depend heavily on the quality of the underlying data. This project provides an automated first-pass audit of CSV datasets and highlights issues that should be addressed before modeling.
+Machine-learning results depend heavily on the quality of the underlying data. This project provides an automated first-pass audit of CSV datasets and highlights issues that should be reviewed before analysis or modeling.
 
 ## Current Features
 
 - Accepts any CSV file through the command line
-- Displays dataset dimensions, preview, and column data types
+- Displays dataset dimensions, a data preview, and column data types
 - Reports missing-value counts and percentages
 - Detects duplicate rows and constant columns
 - Calculates unique-value counts and percentages
 - Identifies high-cardinality text columns
 - Recognizes common identifier naming styles such as `customer_id`, `PassengerId`, and `TransactionID`
 - Reports fully unique columns as possible identifier candidates
-- Supports user-specified identifiers with `--id-columns`
-- Calculates numeric summary statistics while excluding identifiers
-- Detects potential numeric outliers using the IQR method
+- Supports user-specified identifier columns with `--id-columns`
+- Calculates numeric summary statistics while excluding confirmed identifiers
+- Detects potential numeric outliers using the interquartile range (IQR) method
 - Generates actionable data-readiness recommendations
 - Handles missing, blank, malformed, header-only, and text-only CSV files
 
@@ -36,7 +38,7 @@ python -m venv .venv
 ### 2. Install dependencies
 
 ```powershell
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ### 3. Audit a CSV file
@@ -73,7 +75,17 @@ Run the complete test suite:
 python -m pytest -v
 ```
 
-The automated CLI tests verify successful CSV audits, missing and malformed files, blank and header-only datasets, text-only datasets, identifier validation, case-insensitive identifier matching, and exclusion of identifiers from numeric analysis.
+The automated CLI tests verify:
+
+- Successful CSV audits
+- Missing and malformed file handling
+- Blank and header-only dataset handling
+- Text-only dataset handling
+- Identifier-column validation
+- Case-insensitive identifier matching
+- Automatic exclusion of identifiers from numeric analysis
+
+A GitHub Actions continuous-integration workflow automatically installs the project dependencies and runs the complete test suite on every push and pull request.
 
 ## Interpretation Notes
 
@@ -83,16 +95,17 @@ The automated CLI tests verify successful CSV audits, missing and malformed file
 - High-cardinality columns may still contain useful information and require human judgment before encoding or removal.
 - The auditor performs an initial readiness assessment and does not automatically clean or modify the source dataset.
 
-
 ## Technologies
 
 - Python
 - pandas
 - NumPy
+- pytest
+- GitHub Actions
 
 ## Project Status
 
-This project is currently under active development as part of my 12-week applied AI and machine-learning portfolio.
+This project is under active development as part of my 12-week applied AI and machine-learning portfolio.
 
 ## Author
 
