@@ -155,7 +155,7 @@ def test_automatic_identifier_is_excluded_from_numeric_analysis() -> None:
 def test_json_report_is_created(
     tmp_path: Path,
 ) -> None:
-    output_file = tmp_path / "audit.json"
+    output_file = tmp_path / "reports" / "audit.json"
 
     result = run_auditor(
         "data/sample_data.csv",
