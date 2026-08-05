@@ -22,6 +22,7 @@ Machine-learning results depend heavily on the quality of the underlying data. T
 - Calculates numeric summary statistics while excluding confirmed identifiers
 - Detects potential numeric outliers using the interquartile range (IQR) method
 - Generates actionable data-readiness recommendations
+- Exports structured audit results to an optional JSON report
 - Handles missing, blank, malformed, header-only, and text-only CSV files
 
 ## Usage
@@ -54,6 +55,14 @@ python auditor.py path/to/dataset.csv --id-columns record_number account_code
 ```
 
 Column matching for `--id-columns` is case-insensitive.
+
+### 5. Export the audit as JSON
+
+```powershell
+python auditor.py data/sample_data.csv --output-json reports/audit.json
+```
+
+The auditor continues to display the normal terminal report and also saves a structured JSON report to the specified path. Missing parent folders are created automatically.
 
 ### Command help
 
