@@ -27,7 +27,7 @@ def test_sample_dataset_audit_succeeds() -> None:
 
     assert result.returncode == 0
     assert "Rows: 10" in result.stdout
-    assert "Columns: 6" in result.stdout 
+    assert "Columns: 6" in result.stdout
 
 def test_missing_csv_returns_error() -> None:
     result = run_auditor("data/not_found.csv")
@@ -56,7 +56,7 @@ def test_identifier_matching_is_case_insensitive() -> None:
 
     assert result.returncode == 0
     assert "age: 0" in result.stdout
-    assert "income: 1" not in result.stdout 
+    assert "income: 1" not in result.stdout
 def test_header_only_csv_returns_error(
     tmp_path: Path,
 ) -> None:
@@ -89,10 +89,12 @@ def test_blank_csv_returns_error(
     assert result.returncode != 0
     assert "CSV file is empty" in result.stderr
 
+
 def test_text_only_csv_succeeds(
     tmp_path: Path,
 ) -> None:
     csv_file = tmp_path / "text_only.csv"
+    output_file = tmp_path / "text_only.json"
 
     csv_file.write_text(
         "name,city\n"
@@ -101,7 +103,11 @@ def test_text_only_csv_succeeds(
         encoding="utf-8",
     )
 
-    result = run_auditor(str(csv_file))
+    result = run_auditor(
+        str(csv_file),
+        "--output-json",
+        str(output_file),
+    )
 
     assert result.returncode == 0
     assert (
@@ -112,6 +118,14 @@ def test_text_only_csv_succeeds(
         "No numeric columns available for outlier analysis."
         in result.stdout
     )
+    assert output_file.is_file()
+
+    report = json.loads(
+        output_file.read_text(encoding="utf-8")
+    )
+
+    assert report["numeric_summary"] is None
+
 
 def test_malformed_csv_returns_error(
     tmp_path: Path,
@@ -150,7 +164,7 @@ def test_automatic_identifier_is_excluded_from_numeric_analysis() -> None:
     assert "customer_id" not in outlier_section
     assert "age" in numeric_section
     assert "income" in numeric_section
-        
+
 
 def test_json_report_is_created(
     tmp_path: Path,
@@ -175,6 +189,43 @@ def test_json_report_is_created(
         "rows": 10,
         "columns": 6,
     }
+    assert report["data_types"] == {
+        "customer_id": "int64",
+        "name": "str",
+        "age": "float64",
+        "city": "str",
+        "income": "float64",
+        "country": "str",
+    }
+    assert report["unique_values"] == {
+        "customer_id": {
+            "count": 9,
+            "percentage": 90.0,
+        },
+        "name": {
+            "count": 9,
+            "percentage": 90.0,
+        },
+        "age": {
+            "count": 9,
+            "percentage": 90.0,
+        },
+        "city": {
+            "count": 5,
+            "percentage": 50.0,
+        },
+        "income": {
+            "count": 9,
+            "percentage": 90.0,
+        },
+        "country": {
+            "count": 1,
+            "percentage": 10.0,
+        },
+    }
+    assert report["numeric_summary"]["age"]["count"] == 9.0
+    assert report["numeric_summary"]["age"]["50%"] == 34.0
+    assert report["numeric_summary"]["income"]["max"] == 999999.0
     assert report["duplicate_rows"] == 1
     assert report["identifier_columns"] == [
         "customer_id"
@@ -183,4 +234,3 @@ def test_json_report_is_created(
         "age": 0,
         "income": 1,
     }
-            

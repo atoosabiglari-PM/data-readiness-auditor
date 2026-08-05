@@ -133,11 +133,13 @@ constant_columns = [
 print("\nConstant columns:")
 print(constant_columns)
 
+unique_counts = dataset.nunique(dropna=False)
+
 print("\nUnique values by column:")
-print(dataset.nunique(dropna=False))
+print(unique_counts)
 
 unique_percentages = (
-    dataset.nunique(dropna=False)
+    unique_counts
     .div(len(dataset))
     .mul(100)
     .round(1)
@@ -195,8 +197,12 @@ numeric_columns = [
 print("\nNumeric summary statistics:")
 
 if numeric_columns:
-    print(dataset[numeric_columns].describe())
+    numeric_summary = dataset[
+        numeric_columns
+    ].describe()
+    print(numeric_summary)
 else:
+    numeric_summary = None
     print("No numeric columns available for analysis.")
 
 outlier_columns = []
@@ -279,6 +285,31 @@ audit_report = {
         "rows": int(dataset.shape[0]),
         "columns": int(dataset.shape[1]),
     },
+    "data_types": {
+        column: str(dataset.dtypes[column])
+        for column in dataset.columns
+    },
+    "unique_values": {
+        column: {
+            "count": int(unique_counts[column]),
+            "percentage": float(
+                unique_percentages[column]
+            ),
+        }
+        for column in dataset.columns
+    },
+    "numeric_summary": (
+        {
+            column: {
+                statistic: float(value)
+                for statistic, value
+                in numeric_summary[column].items()
+            }
+            for column in numeric_summary.columns
+        }
+        if numeric_summary is not None
+        else None
+    ),
     "missing_values": {
         column: {
             "count": int(missing_counts[column]),
