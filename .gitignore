@@ -24,3 +24,5 @@ Thumbs.db
 # Local and external datasets
 data/*.csv
 !data/sample_data.csv
+# Generated audit reports
+reports/*.json

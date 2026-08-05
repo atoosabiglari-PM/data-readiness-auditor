@@ -1,4 +1,5 @@
 import argparse
+import json
 from pathlib import Path
 import pandas as pd
 import re
@@ -39,6 +40,13 @@ parser.add_argument(
     metavar="COLUMN",
     help="One or more columns to treat as identifiers.",
 )
+parser.add_argument(
+    "--output-json",
+    type=Path,
+    metavar="PATH",
+    help="Optional path for saving the audit as a JSON report.",
+)
+
 
 args = parser.parse_args()
 data_file = args.csv_file
@@ -192,6 +200,7 @@ else:
     print("No numeric columns available for analysis.")
 
 outlier_columns = []
+outlier_counts = {}
 
 print("\nPotential outliers by numeric column:")
 
@@ -210,6 +219,7 @@ for column in numeric_columns:
         (dataset[column] < lower_bound)
         | (dataset[column] > upper_bound)
     ).sum()
+    outlier_counts[column] = int(outlier_count)
 
     if outlier_count > 0:
         outlier_columns.append(column)
@@ -256,3 +266,56 @@ if recommendations:
         print(f"- {recommendation}")
 else:
     print("- No major readiness issues detected.")
+
+report_recommendations = (
+    recommendations
+    if recommendations
+    else ["No major readiness issues detected."]
+)
+
+audit_report = {
+    "source_file": str(data_file),
+    "dataset": {
+        "rows": int(dataset.shape[0]),
+        "columns": int(dataset.shape[1]),
+    },
+    "missing_values": {
+        column: {
+            "count": int(missing_counts[column]),
+            "percentage": float(missing_percentages[column]),
+        }
+        for column in dataset.columns
+    },
+    "duplicate_rows": int(dataset.duplicated().sum()),
+    "constant_columns": constant_columns,
+    "high_cardinality_text_columns": high_cardinality_columns,
+    "identifier_columns": identifier_columns,
+    "possible_identifier_columns": possible_identifier_columns,
+    "potential_outliers": outlier_counts,
+    "recommendations": report_recommendations,
+}
+if args.output_json is not None:
+    output_path = args.output_json
+
+    try:
+        output_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        with output_path.open(
+            "w",
+            encoding="utf-8",
+        ) as output_file:
+            json.dump(
+                audit_report,
+                output_file,
+                indent=2,
+            )
+
+    except OSError as error:
+        parser.error(
+            f"JSON report could not be written: {error}"
+        )
+
+    print(f"\nJSON report saved to: {output_path}")
