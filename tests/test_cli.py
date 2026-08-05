@@ -1,3 +1,4 @@
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -151,5 +152,35 @@ def test_automatic_identifier_is_excluded_from_numeric_analysis() -> None:
     assert "income" in numeric_section
         
 
+def test_json_report_is_created(
+    tmp_path: Path,
+) -> None:
+    output_file = tmp_path / "audit.json"
 
+    result = run_auditor(
+        "data/sample_data.csv",
+        "--output-json",
+        str(output_file),
+    )
+
+    assert result.returncode == 0
+    assert output_file.is_file()
+    assert "JSON report saved to:" in result.stdout
+
+    report = json.loads(
+        output_file.read_text(encoding="utf-8")
+    )
+
+    assert report["dataset"] == {
+        "rows": 10,
+        "columns": 6,
+    }
+    assert report["duplicate_rows"] == 1
+    assert report["identifier_columns"] == [
+        "customer_id"
+    ]
+    assert report["potential_outliers"] == {
+        "age": 0,
+        "income": 1,
+    }
             
