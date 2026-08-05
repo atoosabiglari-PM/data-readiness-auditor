@@ -64,6 +64,25 @@ python auditor.py data/sample_data.csv --output-json reports/audit.json
 
 The auditor continues to display the normal terminal report and also saves a structured JSON report to the specified path. Missing parent folders are created automatically.
 
+### JSON report contents
+
+The JSON report includes:
+
+- source CSV file path
+- dataset row and column counts
+- column data types
+- unique-value counts and percentages
+- numeric summary statistics for non-identifier numeric columns
+- missing-value counts and percentages
+- duplicate-row count
+- constant columns
+- high-cardinality text columns
+- confirmed and possible identifier columns
+- potential outlier counts
+- data-readiness recommendations
+
+For datasets without numeric columns, `numeric_summary` is saved as `null`.
+
 ### Command help
 
 ```powershell
