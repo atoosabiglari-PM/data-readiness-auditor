@@ -1,8 +1,10 @@
 import argparse
 import json
-from pathlib import Path
-import pandas as pd
 import re
+from pathlib import Path
+
+import pandas as pd
+
 
 def has_id_token(column_name: str) -> bool:
     separated_name = re.sub(
@@ -23,10 +25,12 @@ def has_id_token(column_name: str) -> bool:
     )
 
     return "id" in tokens
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
-    description="Audit a CSV dataset for data-readiness issues."
-)
+        description="Audit a CSV dataset for data-readiness issues."
+    )
 
     parser.add_argument(
         "csv_file",
@@ -48,7 +52,6 @@ def main() -> None:
         help="Optional path for saving the audit as a JSON report.",
     )
 
-
     args = parser.parse_args()
     data_file = args.csv_file
 
@@ -67,14 +70,9 @@ def main() -> None:
         parser.error(f"CSV file could not be opened: {error}")
 
     if dataset.shape[0] == 0:
-        parser.error(
-            f"CSV file contains headers but no data rows: {data_file}"
-        )
+        parser.error(f"CSV file contains headers but no data rows: {data_file}")
 
-    column_name_lookup = {
-        column.casefold(): column
-        for column in dataset.columns
-    }
+    column_name_lookup = {column.casefold(): column for column in dataset.columns}
 
     unknown_identifier_columns = [
         requested_column
@@ -84,8 +82,7 @@ def main() -> None:
 
     if unknown_identifier_columns:
         parser.error(
-            "Identifier column(s) not found: "
-            + ", ".join(unknown_identifier_columns)
+            "Identifier column(s) not found: " + ", ".join(unknown_identifier_columns)
         )
 
     user_identifier_columns = [
@@ -105,12 +102,7 @@ def main() -> None:
 
     missing_counts = dataset.isna().sum()
 
-    missing_percentages = (
-        dataset.isna()
-        .mean()
-        .mul(100)
-        .round(1)
-    )
+    missing_percentages = dataset.isna().mean().mul(100).round(1)
 
     missing_summary = pd.DataFrame(
         {
@@ -139,40 +131,25 @@ def main() -> None:
     print("\nUnique values by column:")
     print(unique_counts)
 
-    unique_percentages = (
-        unique_counts
-        .div(len(dataset))
-        .mul(100)
-        .round(1)
-    )
+    unique_percentages = unique_counts.div(len(dataset)).mul(100).round(1)
 
     print("\nUnique-value percentage by column:")
     print(unique_percentages)
 
-    text_columns = dataset.select_dtypes(
-        include=["object", "string"]
-    ).columns
+    text_columns = dataset.select_dtypes(include=["object", "string"]).columns
 
     high_cardinality_columns = [
-        column
-        for column in text_columns
-        if unique_percentages[column] >= 80
+        column for column in text_columns if unique_percentages[column] >= 80
     ]
 
     print("\nHigh-cardinality text columns:")
     print(high_cardinality_columns)
 
-
-
     identifier_columns = [
         column
         for column in dataset.columns
-        if (
-            has_id_token(column)
-            or column in user_identifier_columns
-        )
+        if (has_id_token(column) or column in user_identifier_columns)
     ]
-
 
     possible_identifier_columns = [
         column
@@ -186,21 +163,16 @@ def main() -> None:
     print("\nPossible identifier columns requiring review:")
     print(possible_identifier_columns)
 
-
     numeric_columns = [
         column
-        for column in dataset.select_dtypes(
-            include="number"
-        ).columns
+        for column in dataset.select_dtypes(include="number").columns
         if column not in identifier_columns
     ]
 
     print("\nNumeric summary statistics:")
 
     if numeric_columns:
-        numeric_summary = dataset[
-            numeric_columns
-        ].describe()
+        numeric_summary = dataset[numeric_columns].describe()
         print(numeric_summary)
     else:
         numeric_summary = None
@@ -223,8 +195,7 @@ def main() -> None:
         upper_bound = q3 + (1.5 * iqr)
 
         outlier_count = (
-            (dataset[column] < lower_bound)
-            | (dataset[column] > upper_bound)
+            (dataset[column] < lower_bound) | (dataset[column] > upper_bound)
         ).sum()
         outlier_counts[column] = int(outlier_count)
 
@@ -238,20 +209,14 @@ def main() -> None:
     recommendations = []
 
     if missing_counts.sum() > 0:
-        recommendations.append(
-            "Review and handle missing values before modeling."
-        )
+        recommendations.append("Review and handle missing values before modeling.")
 
     if dataset.duplicated().sum() > 0:
-        recommendations.append(
-            "Review and remove or justify duplicate rows."
-        )
+        recommendations.append("Review and remove or justify duplicate rows.")
 
     if constant_columns:
         recommendations.append(
-            "Consider removing constant columns: "
-            + ", ".join(constant_columns)
-            + "."
+            "Consider removing constant columns: " + ", ".join(constant_columns) + "."
         )
 
     if high_cardinality_columns:
@@ -275,9 +240,7 @@ def main() -> None:
         print("- No major readiness issues detected.")
 
     report_recommendations = (
-        recommendations
-        if recommendations
-        else ["No major readiness issues detected."]
+        recommendations if recommendations else ["No major readiness issues detected."]
     )
 
     audit_report = {
@@ -287,15 +250,12 @@ def main() -> None:
             "columns": int(dataset.shape[1]),
         },
         "data_types": {
-            column: str(dataset.dtypes[column])
-            for column in dataset.columns
+            column: str(dataset.dtypes[column]) for column in dataset.columns
         },
         "unique_values": {
             column: {
                 "count": int(unique_counts[column]),
-                "percentage": float(
-                    unique_percentages[column]
-                ),
+                "percentage": float(unique_percentages[column]),
             }
             for column in dataset.columns
         },
@@ -303,8 +263,7 @@ def main() -> None:
             {
                 column: {
                     statistic: float(value)
-                    for statistic, value
-                    in numeric_summary[column].items()
+                    for statistic, value in numeric_summary[column].items()
                 }
                 for column in numeric_summary.columns
             }
@@ -346,10 +305,10 @@ def main() -> None:
                 )
 
         except OSError as error:
-            parser.error(
-                f"JSON report could not be written: {error}"
-            )
+            parser.error(f"JSON report could not be written: {error}")
 
         print(f"\nJSON report saved to: {output_path}")
+
+
 if __name__ == "__main__":
     main()

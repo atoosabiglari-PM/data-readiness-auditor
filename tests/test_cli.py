@@ -3,7 +3,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 AUDITOR_PATH = PROJECT_ROOT / "auditor.py"
 
@@ -22,6 +21,8 @@ def run_auditor(
         text=True,
         check=False,
     )
+
+
 def test_sample_dataset_audit_succeeds() -> None:
     result = run_auditor("data/sample_data.csv")
 
@@ -29,11 +30,13 @@ def test_sample_dataset_audit_succeeds() -> None:
     assert "Rows: 10" in result.stdout
     assert "Columns: 6" in result.stdout
 
+
 def test_missing_csv_returns_error() -> None:
     result = run_auditor("data/not_found.csv")
 
     assert result.returncode != 0
     assert "CSV file not found" in result.stderr
+
 
 def test_unknown_identifier_column_returns_error() -> None:
     result = run_auditor(
@@ -43,10 +46,9 @@ def test_unknown_identifier_column_returns_error() -> None:
     )
 
     assert result.returncode != 0
-    assert (
-        "Identifier column(s) not found: WrongColumn"
-        in result.stderr
-    )
+    assert "Identifier column(s) not found: WrongColumn" in result.stderr
+
+
 def test_identifier_matching_is_case_insensitive() -> None:
     result = run_auditor(
         "data/sample_data.csv",
@@ -57,6 +59,8 @@ def test_identifier_matching_is_case_insensitive() -> None:
     assert result.returncode == 0
     assert "age: 0" in result.stdout
     assert "income: 1" not in result.stdout
+
+
 def test_header_only_csv_returns_error(
     tmp_path: Path,
 ) -> None:
@@ -70,10 +74,9 @@ def test_header_only_csv_returns_error(
     result = run_auditor(str(csv_file))
 
     assert result.returncode != 0
-    assert (
-        "CSV file contains headers but no data rows"
-        in result.stderr
-    )
+    assert "CSV file contains headers but no data rows" in result.stderr
+
+
 def test_blank_csv_returns_error(
     tmp_path: Path,
 ) -> None:
@@ -97,9 +100,7 @@ def test_text_only_csv_succeeds(
     output_file = tmp_path / "text_only.json"
 
     csv_file.write_text(
-        "name,city\n"
-        "Ana,San Jose\n"
-        "Ben,Oakland\n",
+        "name,city\nAna,San Jose\nBen,Oakland\n",
         encoding="utf-8",
     )
 
@@ -110,19 +111,11 @@ def test_text_only_csv_succeeds(
     )
 
     assert result.returncode == 0
-    assert (
-        "No numeric columns available for analysis."
-        in result.stdout
-    )
-    assert (
-        "No numeric columns available for outlier analysis."
-        in result.stdout
-    )
+    assert "No numeric columns available for analysis." in result.stdout
+    assert "No numeric columns available for outlier analysis." in result.stdout
     assert output_file.is_file()
 
-    report = json.loads(
-        output_file.read_text(encoding="utf-8")
-    )
+    report = json.loads(output_file.read_text(encoding="utf-8"))
 
     assert report["numeric_summary"] is None
 
@@ -133,9 +126,7 @@ def test_malformed_csv_returns_error(
     csv_file = tmp_path / "malformed.csv"
 
     csv_file.write_text(
-        'name,city\n'
-        '"Ana,San Jose\n'
-        'Ben,Oakland\n',
+        'name,city\n"Ana,San Jose\nBen,Oakland\n',
         encoding="utf-8",
     )
 
@@ -144,20 +135,17 @@ def test_malformed_csv_returns_error(
     assert result.returncode != 0
     assert "CSV file could not be parsed" in result.stderr
 
+
 def test_automatic_identifier_is_excluded_from_numeric_analysis() -> None:
     result = run_auditor("data/sample_data.csv")
 
-    numeric_section = (
-        result.stdout
-        .split("Numeric summary statistics:", 1)[1]
-        .split("Potential outliers by numeric column:", 1)[0]
-    )
+    numeric_section = result.stdout.split("Numeric summary statistics:", 1)[1].split(
+        "Potential outliers by numeric column:", 1
+    )[0]
 
-    outlier_section = (
-        result.stdout
-        .split("Potential outliers by numeric column:", 1)[1]
-        .split("Data-readiness recommendations:", 1)[0]
-    )
+    outlier_section = result.stdout.split("Potential outliers by numeric column:", 1)[
+        1
+    ].split("Data-readiness recommendations:", 1)[0]
 
     assert result.returncode == 0
     assert "customer_id" not in numeric_section
@@ -181,9 +169,7 @@ def test_json_report_is_created(
     assert output_file.is_file()
     assert "JSON report saved to:" in result.stdout
 
-    report = json.loads(
-        output_file.read_text(encoding="utf-8")
-    )
+    report = json.loads(output_file.read_text(encoding="utf-8"))
 
     assert report["dataset"] == {
         "rows": 10,
@@ -227,9 +213,7 @@ def test_json_report_is_created(
     assert report["numeric_summary"]["age"]["50%"] == 34.0
     assert report["numeric_summary"]["income"]["max"] == 999999.0
     assert report["duplicate_rows"] == 1
-    assert report["identifier_columns"] == [
-        "customer_id"
-    ]
+    assert report["identifier_columns"] == ["customer_id"]
     assert report["potential_outliers"] == {
         "age": 0,
         "income": 1,
