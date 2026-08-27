@@ -36,6 +36,15 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
+If PowerShell blocks `Activate.ps1` because script execution is disabled, allow it only for the current terminal session and retry:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+.\.venv\Scripts\Activate.ps1
+```
+
+The temporary execution-policy change ends when the PowerShell window closes.
+
 ### 2. Install dependencies
 
 ```powershell
@@ -68,18 +77,18 @@ The auditor continues to display the normal terminal report and also saves a str
 
 The JSON report includes:
 
-- source CSV file path
-- dataset row and column counts
-- column data types
-- unique-value counts and percentages
-- numeric summary statistics for non-identifier numeric columns
-- missing-value counts and percentages
-- duplicate-row count
-- constant columns
-- high-cardinality text columns
-- confirmed and possible identifier columns
-- potential outlier counts
-- data-readiness recommendations
+- Source CSV file path
+- Dataset row and column counts
+- Column data types
+- Unique-value counts and percentages
+- Numeric summary statistics for non-identifier numeric columns
+- Missing-value counts and percentages
+- Duplicate-row count
+- Constant columns
+- High-cardinality text columns
+- Confirmed and possible identifier columns
+- Potential outlier counts
+- Data-readiness recommendations
 
 For datasets without numeric columns, `numeric_summary` is saved as `null`.
 
@@ -136,15 +145,39 @@ Data-readiness recommendations:
 
 This example demonstrates how the auditor converts raw CSV data into clear quality findings and recommended next actions.
 
-## Automated Testing
+## Development and Quality Checks
 
-Install the development and testing dependencies:
+Install the development dependencies:
 
 ```powershell
 python -m pip install -r requirements-dev.txt
 ```
 
-Run the complete test suite:
+The development requirements include the application dependencies, pytest, and Ruff.
+
+### Check code quality
+
+```powershell
+ruff check .
+```
+
+This command checks the Python files for linting problems, invalid imports, and other code-quality issues without changing the files.
+
+### Verify formatting
+
+```powershell
+ruff format --check .
+```
+
+This command verifies that the Python files follow Ruff’s formatting standard without modifying them.
+
+To apply Ruff formatting automatically:
+
+```powershell
+ruff format .
+```
+
+### Run the automated tests
 
 ```powershell
 python -m pytest -v
@@ -159,8 +192,9 @@ The automated CLI tests verify:
 - Identifier-column validation
 - Case-insensitive identifier matching
 - Automatic exclusion of identifiers from numeric analysis
+- JSON report creation
 
-A GitHub Actions continuous-integration workflow automatically installs the project dependencies and runs the complete test suite on every push and pull request.
+A GitHub Actions continuous-integration workflow automatically installs the development dependencies and runs Ruff linting, formatting verification, and the complete pytest suite on every push and pull request.
 
 ## Interpretation Notes
 
@@ -176,11 +210,12 @@ A GitHub Actions continuous-integration workflow automatically installs the proj
 - pandas
 - NumPy
 - pytest
+- Ruff
 - GitHub Actions
 
 ## Project Status
 
-This project is under active development as part of my 12-week applied AI and machine-learning portfolio.
+This project is under active development as part of the engineering foundation for my 24-week, 492-hour enterprise AI portfolio program.
 
 ## Author
 
